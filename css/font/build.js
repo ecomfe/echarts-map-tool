@@ -4,7 +4,7 @@ var path = require('path');
 
 
 
-htmlToText.fromFile(path.join(__dirname, '../../geojsonIndex.html'), {}, function (err, text) {
+htmlToText.fromFile(path.join(__dirname, '../../index.html'), {}, function (err, text) {
 
     new Fontmin()
         .src('./noto-thin.ttf')
@@ -15,8 +15,6 @@ htmlToText.fromFile(path.join(__dirname, '../../geojsonIndex.html'), {}, functio
             if (err) {
                 throw new Error(err);
             }
-            console.log('files');
-            console.log(files);
             require('fs').writeFileSync('./noto-thin.min.ttf', files[0]._contents);
         });
 })

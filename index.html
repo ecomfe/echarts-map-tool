@@ -60,9 +60,40 @@
                 </p>
 
             </section>
+
+            <section id="preview">
+                <h3>预览<span>  preview</span></h3>
+                <div id="preview-viewport"></div>
+            </section>
+
+            <section id="example">
+                <h3>使用示例<span>  example</span></h3>
+                <pre>
+var myChart = echarts.init(document.getElementById('main'));
+
+echarts.util.mapData.params.params.beijing = {
+    getGeoJson: function (callback) {
+        $.getJSON('./beijing.json', function (data) {
+            // 压缩后的地图数据必须使用 decode 函数转换
+            callback(echarts.util.mapData.params.decode(data));
+        });
+    }
+};
+
+myChart.setOption({
+    series : [
+        {
+            name:'北京地图',
+            type:'map',
+            mapType: 'beijing'
+        }
+    ]
+});
+                </pre>
+            </section>
         </div>
         <div id="action">
-            <button id="downLoadButton">生 成</button>
+            <button id="build">生 成</button>
         </div>
     </main>
 
@@ -74,6 +105,7 @@
     <script type="text/javascript" src="http://webapi.amap.com/maps?v=1.3&key=9d4f5c2078ba12cb9d9d09c4e81c95d0"></script>
     <script src="lib/jquery.js"></script>
     <script src='lib/FileSaver.min.js'></script>
+    <script src="lib/echarts.js"></script>
     <script src="js/download.js"></script>
     <script>
 
@@ -119,7 +151,7 @@
     mapObj = new AMap.Map('mapContainer',{
         resizeEnable: true,
         layers: [
-        new AMap.TileLayer()
+            new AMap.TileLayer()
         ],
         view: new AMap.View2D({
             center: new AMap.LngLat(116.30946,39.937629),
@@ -188,13 +220,13 @@
 
     AMap.service(["AMap.DistrictSearch"], function() {
         var opts = {
-    subdistrict: 1,   //返回下一级行政区
-    extensions: 'all',  //返回行政区边界坐标组等具体信息
-    level:'city'  //查询行政级别为 市
-    };
+            subdistrict: 1,   //返回下一级行政区
+            extensions: 'all',  //返回行政区边界坐标组等具体信息
+            level:'city'  //查询行政级别为 市
+        };
 
-    // 实例化DistrictSearch
-    district = new AMap.DistrictSearch(opts);
+        // 实例化DistrictSearch
+        district = new AMap.DistrictSearch(opts);
     });
 
 
@@ -271,7 +303,6 @@
             getType = 0;
             alert('请选择正确的地图范围');
         }
-
     }
 
     // 监听省级下拉列表变化
@@ -429,6 +460,28 @@
         }
     }
 
+    var myChart;
+    function preview(data) {
+        if (! myChart) {
+            myChart = echarts.init('preview-viewport');
+        }
+        echarts.util.mapData.params.params.preview = {
+            getGeoJson: function (callback) {
+                callback(echarts.util.mapData.params.decode(data));
+            }
+        };
+        myChart.setOption({
+            series : [
+                {
+                    name:'预览',
+                    type:'map',
+                    mapType: 'preview',
+                    data:[]
+                }
+            ]
+        });
+    }
+
     // //
     // function search(obj) {
 
@@ -445,31 +498,6 @@
     //         getData(result);
     //     });
     // }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     </script>
 
