@@ -1,0 +1,6 @@
+.DS_Store
+*.swp
+.project
+node_modules
+test
+.svn
