@@ -1,6 +1,3 @@
-// 异步请求标示，为0时表示请求完成
-var asynFlag = 0;
-
 //geojson对象
 function Geojson() {
     this.type  = "FeatureCollection";
@@ -23,7 +20,7 @@ function Feature() {
 }
 
 //下载geojson文件
-function startDownload(range, isOnlyOutline, isCompressed) {
+function fetchGeoJson(range, isOnlyOutline, isCompressed, cb) {
 
     var level;
     var keyword;
@@ -61,91 +58,85 @@ function startDownload(range, isOnlyOutline, isCompressed) {
 
     //行政区查询
     district.search(keyword, function(status, result){
+        if (status === 'no_data') {
+            cb();
+            return;
+        }
         if (isOnlyOutline) {
-            createOutlineGeojson(result.districtList, isCompressed, outlineCallback);
+            createOutlineGeojson(result.districtList, isCompressed, cb);
         }
         else {
-            createDetailedGeojson(result.districtList, isCompressed, detailedCallback);
+            createDetailedGeojson(result.districtList, isCompressed, cb);
         }
-
     });
-
 }
 
 
 // 生成仅有区域外轮廓的geojson文件
-function createOutlineGeojson(list, isCompressed, outlineCallback) {
+function createOutlineGeojson(list, isCompressed, cb) {
 
     // 实例化features, 该数据为geojson的features属性
-    var features = [];
-
-    var feature = new Feature();
+    var geojson = new Geojson();
+    var features = geojson.features;
 
     var data = list[0];
     var cityCode = data.citycode;
     var level = data.level;
 
     //获取市以及市下面的地区
+    var feature;
     if(level === 'district') {
         feature = createDistFeature(list, citycode);
         features.push(feature);
-        outlineCallback(features, isCompressed);
-
     } else {
         feature = createFeature(data);
         features.push(feature);
-        outlineCallback(features, isCompressed);
-
     }
-
-}
-
-// 所有feature对象都生成后，将features赋值给geojson.features
-function outlineCallback(features, isCompressed) {
-
-    // 实例化geojson
-    var geojson = new Geojson();
-
-    geojson.features = features;
 
     if (isCompressed) {
-        compressAndDownloadGeojson(geojson);
-    } else {
-        downloadGeojson(geojson);
+        geojson = compress(geojson);
     }
 
-    district.setSubdistrict(1);
+    cb(geojson);
 
+    district.setSubdistrict(1);
 }
 
 // 生成包含外部轮廓和内部分界的geojson文件
-function createDetailedGeojson(list, isCompressed, detailedCallback) {
+function createDetailedGeojson(list, isCompressed, cb) {
 
-    // 实例化features, 该数据为geojson的features属性
-    var features = [];
-
-    // // 实例化feature，对于仅有轮廓的地图数据，features数组仅有的一项
-    // var feature = new Feature();
+    var geojson = new Geojson();
+    var features = geojson.features;
 
     var data = list[0];
 
     var dList = data.districtList;
     var cityCode = data.citycode;
 
+    var reqCount = 0;
+
     //// 考虑区县同名问题,分为两种情况: 获取市以及市下属区县; 其他
     if(cityCode.length) {
         for(var m = 0, mlength = dList.length; m < mlength; m++) {
 
             var keyword = dList[m].name;
-            asynFlag++;
+            reqCount++;
 
             district.search(keyword, function(status, result){
-                asynFlag--;
+                reqCount--;
                 var subDistrictList = result.districtList;
                 var feature = createDistFeatures(subDistrictList, citycode);
                 features.push(feature);
                 feature = null;
-                detailedCallback(features, isCompressed);
+
+                if (reqCount === 0) {
+                    if (isCompressed) {
+                        geojson = compress(geojson);
+                    }
+                    cb(geojson);
+
+                    district.setSubdistrict(1);
+                }
             });
         }
 
@@ -153,34 +144,23 @@ function createDetailedGeojson(list, isCompressed, detailedCallback) {
         for(var m = 0, mlength = dList.length; m < mlength; m++) {
 
             var keyword = dList[m].name;
-            asynFlag++;
+            reqCount++;
 
             district.search(keyword, function(status, result){
-                asynFlag--;
+                reqCount--;
                 var subDistrictList = result.districtList;
                 var feature = createFeatures(subDistrictList);
                 features.push(feature);
                 feature = null;
-                detailedCallback(features, isCompressed);
+
+                if (reqCount === 0) {
+                    geojson = compress(geojson);
+                    cb(geojson);
+
+                    district.setSubdistrict(1);
+                }
             });
         }
-    }
-}
-
-// 所有feature对象都生成后，将features赋值给geojson.features
-function detailedCallback(features, isCompressed) {
-    // 实例化geojson
-    var geojson = new Geojson();
-
-    if (asynFlag === 0) {
-        geojson.features = features;
-        if (isCompressed) {
-            compressAndDownloadGeojson(geojson);
-        } else {
-            downloadGeojson(geojson);
-        }
-/*        geojson = new Geojson();
-        features = [];*/
     }
 }
 
@@ -349,27 +329,14 @@ function getCoo (obj, coo) {
 }
 
 // 不压缩，下载地图文件
-function downloadGeojson(geojson) {
+function downloadGeoJson(geojson) {
 
     var str = JSON.stringify(geojson);
     var blob = new Blob([str], {
         type: 'text/plain;charset=utf8'
     });
     var fileName = [];
-    fileName.push(fileStr + '非压缩');
-    fileName.push('json');
-    saveAs(blob, fileName.join('.'));
-
-}
-
-// 压缩并下载地图文件
-function compressAndDownloadGeojson(geojson) {
-    var str = compress(geojson);
-    var blob = new Blob([str], {
-        type: 'text/plain;charset=utf8'
-    });
-    var fileName = [];
-    fileName.push(fileStr + '压缩');
+    fileName.push(fileStr);
     fileName.push('json');
     saveAs(blob, fileName.join('.'));
 
@@ -404,7 +371,7 @@ function compress(json) {
     }
     });
 
-    return JSON.stringify(json);
+    return json;
 }
 
 function encodePolygon(coordinate, encodeOffsets) {

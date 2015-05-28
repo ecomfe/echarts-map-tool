@@ -37,6 +37,11 @@
 
             </section>
 
+            <section id="preview">
+                <h3>预览<span>  preview</span></h3>
+                <div id="preview-viewport"></div>
+            </section>
+
             <section id="type">
                 <h3>精度<span>  precision</span></h3>
                 <p>
@@ -59,11 +64,6 @@
                     <p class="desc">压缩后体积占用更小, 地图精度不变, 但是只能使用 UTF-8 编码</p>
                 </p>
 
-            </section>
-
-            <section id="preview">
-                <h3>预览<span>  preview</span></h3>
-                <div id="preview-viewport"></div>
             </section>
 
             <section id="example">
@@ -202,13 +202,7 @@ myChart.setOption({
         district = new AMap.DistrictSearch(opts);
     });
 
-
-    // -- dom事件绑定 --
-
-    // 绑定生成按钮点击事件，触发生成地图数据并下载
-    $('#build').click(downLoadButtonCallback);
-    function downLoadButtonCallback() {
-        console.log('enter');
+    function updateAndFetch(cb) {
         // 选中的范围
         var selectProvince = $('#province').find("option:selected");
         var selectCity = $('#city').find("option:selected");
@@ -254,28 +248,46 @@ myChart.setOption({
         switch (getType) {
             case 3:
             fileStr = '中国';
-            startDownload('中国', isOnlyOutline, isCompressed);
+            fetchGeoJson('中国', isOnlyOutline, isCompressed, cb);
             getType = 0;
             break;
             case 2:
             fileStr = selectProvince.text();
-            startDownload(selectProvince, isOnlyOutline, isCompressed);
+            fetchGeoJson(selectProvince, isOnlyOutline, isCompressed, cb);
             getType = 0;
             break;
             case 1:
             fileStr = selectCity.text();
-            startDownload(selectCity, isOnlyOutline, isCompressed);
+            fetchGeoJson(selectCity, isOnlyOutline, isCompressed, cb);
             getType = 0;
             break;
             case 0:
             fileStr = selectDistrict.text();
-            startDownload(selectDistrict, true, isCompressed);
+            fetchGeoJson(selectDistrict, true, isCompressed, cb);
             getType = 0;
             break;
             default:
             getType = 0;
             alert('请选择正确的地图范围');
         }
+    }
+
+
+    // -- dom事件绑定 --
+
+    $('#type input').change(function () {
+
+        // 更新预览
+        updateAndFetch(preview);
+    });
+
+    // 绑定生成按钮点击事件，触发生成地图数据并下载
+    $('#build').click(downLoadButtonCallback);
+
+    function downLoadButtonCallback() {
+        updateAndFetch(function (geoJson) {
+            downloadGeoJson(geoJson);
+        });
     }
 
     // 监听省级下拉列表变化
@@ -320,6 +332,9 @@ myChart.setOption({
                 getData(result);
             });
         }
+
+        // 更新预览
+        updateAndFetch(preview);
     }
 
     // 监听市级下拉列表变化
@@ -348,6 +363,9 @@ myChart.setOption({
                 getData(result);
             });
         }
+
+        // 更新预览
+        updateAndFetch(preview);
     }
 
     // 监听区县级下拉列表变化
@@ -382,6 +400,8 @@ myChart.setOption({
             getData(result);
         });
 
+        // 更新预览
+        updateAndFetch(preview);
     }
 
     // 判断直辖市,行政区
@@ -445,9 +465,14 @@ myChart.setOption({
 
     var myChart;
     function preview(data) {
-        if (! myChart) {
-            myChart = echarts.init('preview-viewport');
+        if (myChart) {
+            myChart.dispose();
         }
+        if (! data) {
+            document.getElementById('preview-viewport').innerHTML = '无数据';
+            return;
+        }
+        myChart = echarts.init(document.getElementById('preview-viewport'));
         echarts.util.mapData.params.params.preview = {
             getGeoJson: function (callback) {
                 callback(echarts.util.mapData.params.decode(data));
@@ -459,7 +484,13 @@ myChart.setOption({
                     name:'预览',
                     type:'map',
                     mapType: 'preview',
-                    data:[]
+                    data:[],
+                    roam: true,
+                    itemStyle: {
+                        normal: {
+                            borderColor: '#000'
+                        }
+                    }
                 }
             ]
         });
