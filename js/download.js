@@ -1,3 +1,6 @@
+// 异步请求标示，为0时表示请求完成
+var asynFlag = 0;
+
 //geojson对象
 function Geojson() {
     this.type  = "FeatureCollection";
@@ -73,25 +76,35 @@ function startDownload(range, isOnlyOutline, isCompressed) {
 // 生成仅有区域外轮廓的geojson文件
 function createOutlineGeojson(list, isCompressed, outlineCallback) {
 
+    // 实例化features, 该数据为geojson的features属性
+    var features = [];
+
+    var feature = new Feature();
+
     var data = list[0];
     var cityCode = data.citycode;
     var level = data.level;
 
     //获取市以及市下面的地区
     if(level === 'district') {
-        createDistFeature(list, citycode);
-        outlineCallback(isCompressed);
+        feature = createDistFeature(list, citycode);
+        features.push(feature);
+        outlineCallback(features, isCompressed);
 
     } else {
-        createFeature(data);
-        outlineCallback(isCompressed);
+        feature = createFeature(data);
+        features.push(feature);
+        outlineCallback(features, isCompressed);
 
     }
 
 }
 
 // 所有feature对象都生成后，将features赋值给geojson.features
-function outlineCallback(isCompressed) {
+function outlineCallback(features, isCompressed) {
+
+    // 实例化geojson
+    var geojson = new Geojson();
 
     geojson.features = features;
 
@@ -101,21 +114,25 @@ function outlineCallback(isCompressed) {
         downloadGeojson(geojson);
     }
 
-    geojson = new Geojson();
-    features = [];
-    feature = new Feature();
+    district.setSubdistrict(1);
 
 }
 
 // 生成包含外部轮廓和内部分界的geojson文件
 function createDetailedGeojson(list, isCompressed, detailedCallback) {
 
+    // 实例化features, 该数据为geojson的features属性
+    var features = [];
+
+    // // 实例化feature，对于仅有轮廓的地图数据，features数组仅有的一项
+    // var feature = new Feature();
+
     var data = list[0];
 
     var dList = data.districtList;
     var cityCode = data.citycode;
 
-    //获取市以及市下面的地区
+    //// 考虑区县同名问题,分为两种情况: 获取市以及市下属区县; 其他
     if(cityCode.length) {
         for(var m = 0, mlength = dList.length; m < mlength; m++) {
 
@@ -128,7 +145,7 @@ function createDetailedGeojson(list, isCompressed, detailedCallback) {
                 var feature = createDistFeatures(subDistrictList, citycode);
                 features.push(feature);
                 feature = null;
-                detailedCallback(isCompressed);
+                detailedCallback(features, isCompressed);
             });
         }
 
@@ -144,14 +161,16 @@ function createDetailedGeojson(list, isCompressed, detailedCallback) {
                 var feature = createFeatures(subDistrictList);
                 features.push(feature);
                 feature = null;
-                detailedCallback(isCompressed);
+                detailedCallback(features, isCompressed);
             });
         }
     }
 }
 
 // 所有feature对象都生成后，将features赋值给geojson.features
-function detailedCallback(isCompressed) {
+function detailedCallback(features, isCompressed) {
+    // 实例化geojson
+    var geojson = new Geojson();
 
     if (asynFlag === 0) {
         geojson.features = features;
@@ -160,14 +179,17 @@ function detailedCallback(isCompressed) {
         } else {
             downloadGeojson(geojson);
         }
-        geojson = new Geojson();
-        features = [];
+/*        geojson = new Geojson();
+        features = [];*/
     }
 }
 
 
 // 生成单一轮廓（包括国家，省，市）
 function createFeature (district) {
+
+    // 实例化feature，对于仅有轮廓的地图数据，features数组仅有的一项
+    var feature = new Feature();
 
     var cp = [];
     var coordinatesSet = [];
@@ -186,12 +208,15 @@ function createFeature (district) {
     cp = [];
     getCoo(district, coordinatesSet);
     feature.geometry.coordinates = coordinatesSet;
-    features.push(feature);
+    return feature;
 
 }
 
 // 生成单一区县轮廓
 function createDistFeature (districtList, citycode) {
+
+    // 实例化feature，对于仅有轮廓的地图数据，features数组仅有的一项
+    var feature = new Feature();
 
     var cp = [];
     var coordinatesSet = [];
@@ -216,8 +241,8 @@ function createDistFeature (districtList, citycode) {
             cp = [];
             getCoo(district, coordinatesSet);
             feature.geometry.coordinates = coordinatesSet;
-            features.push(feature);
-            return;
+            // features.push(feature);
+            return feature;
         }
 
     }

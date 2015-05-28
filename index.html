@@ -97,8 +97,6 @@ myChart.setOption({
         </div>
     </main>
 
-    <!-- 地图容器,不显示在页面中 -->
-    <div id="mapContainer"></div>
     <footer>
     </footer>
 
@@ -120,22 +118,8 @@ myChart.setOption({
     // 区县所在城市的城市编码, 用于搜索重名区域时确定具体区县
     var citycode;
 
-    // 异步请求标示，为0时表示请求完成
-    var asynFlag = 0;
-
     // 保存文件的名称
     var fileStr = '';
-
-    // 实例化geojson
-    var geojson = new Geojson();
-
-    // 实例化features, 该数据为geojson的features属性
-    var features = [];
-
-    // 实例化feature，对于仅有轮廓的地图数据，features数组仅有的一项
-    var feature = new Feature();
-
-
 
     // -- 初始化:直辖市,行政区 --
 
@@ -147,17 +131,6 @@ myChart.setOption({
 
     // 是否是香港澳门
     var isAomenOrHK = false;
-
-    mapObj = new AMap.Map('mapContainer',{
-        resizeEnable: true,
-        layers: [
-            new AMap.TileLayer()
-        ],
-        view: new AMap.View2D({
-            center: new AMap.LngLat(116.30946,39.937629),
-            zoom: 3
-        })
-    });
 
     var centralCity = [
         {
@@ -233,9 +206,9 @@ myChart.setOption({
     // -- dom事件绑定 --
 
     // 绑定生成按钮点击事件，触发生成地图数据并下载
-    $('#downLoadButton').click(downLoadButtonCallback);
+    $('#build').click(downLoadButtonCallback);
     function downLoadButtonCallback() {
-
+        console.log('enter');
         // 选中的范围
         var selectProvince = $('#province').find("option:selected");
         var selectCity = $('#city').find("option:selected");
@@ -379,9 +352,14 @@ myChart.setOption({
 
     // 监听区县级下拉列表变化
     $('#district').change(districtSelectCallback);
+
     function districtSelectCallback() {
+
         $('#outline').prop("checked", true);
         $('#outlineAndPartition').prop("disabled", true);
+
+        var trimDistrict = INIT_DISTRICT_CONTENT.replace(/<option>(.*?)<\/option>/g,"$1");
+
 
         var arrTemp = $(this).val().split('|');
 
@@ -391,11 +369,16 @@ myChart.setOption({
         citycode = arrTemp[1];
 
         var keyword = $(this).find("option:selected").text();
+        if (keyword == trimDistrict) {
+            $('#outlineAndPartition').removeAttr('disabled');
+        }
+
 
         //行政区级别
         district.setLevel(level);
         //行政区查询
         district.search(keyword, function(status, result){
+            console.log(result);
             getData(result);
         });
 
