@@ -87,11 +87,10 @@ function createOutlineGeojson(list, isCompressed, cb) {
     var feature;
     if(level === 'district') {
         feature = createDistFeature(list, citycode);
-        features.push(feature);
     } else {
         feature = createFeature(data);
-        features.push(feature);
     }
+    features.push(feature);
 
     if (isCompressed) {
         geojson = compress(geojson);
@@ -126,8 +125,10 @@ function createDetailedGeojson(list, isCompressed, cb) {
                 reqCount--;
                 var subDistrictList = result.districtList;
                 var feature = createDistFeatures(subDistrictList, citycode);
-                features.push(feature);
-                feature = null;
+
+                if (feature) {
+                    features.push(feature);
+                }
 
                 if (reqCount === 0) {
                     if (isCompressed) {
@@ -151,7 +152,6 @@ function createDetailedGeojson(list, isCompressed, cb) {
                 var subDistrictList = result.districtList;
                 var feature = createFeatures(subDistrictList);
                 features.push(feature);
-                feature = null;
 
                 if (reqCount === 0) {
                     geojson = compress(geojson);
@@ -200,11 +200,10 @@ function createDistFeature (districtList, citycode) {
 
     var cp = [];
     var coordinatesSet = [];
-    var district = {};
 
     for (var t = 0, tlength =  districtList.length; t < tlength; t++) {
 
-        district = districtList[t];
+        var district = districtList[t];
 
         if(district.citycode == citycode) {
             feature.id = district.adcode;
@@ -221,7 +220,6 @@ function createDistFeature (districtList, citycode) {
             cp = [];
             getCoo(district, coordinatesSet);
             feature.geometry.coordinates = coordinatesSet;
-            // features.push(feature);
             return feature;
         }
 
@@ -235,10 +233,9 @@ function createFeatures (districtList) {
     var feature = new Feature();
     var cp = [];
     var coordinatesSet = [];
-    var district = {};
 
     for (var d = 0, dlength = districtList.length; d < dlength; d++) {
-        district = districtList[d];
+        var district = districtList[d];
         feature.id = district.adcode;
         feature.properties.name = district.name;
         feature.properties.childNum = district.boundaries.length;
@@ -255,7 +252,6 @@ function createFeatures (districtList) {
         feature.geometry.coordinates = coordinatesSet;
         coordinatesSet = [];
         return feature;
-        district = {};
     }
 
 }
@@ -265,10 +261,9 @@ function createDistFeatures(districtList, citycode) {
     var feature = new Feature();
     var cp = [];
     var coordinatesSet = [];
-    var district = {};
 
     for (var d = 0, dlength = districtList.length; d < dlength; d++) {
-        district = districtList[d];
+        var district = districtList[d];
         if (district.citycode === citycode) {
             feature.id = district.adcode;
             feature.properties.name = district.name;
@@ -285,11 +280,11 @@ function createDistFeatures(districtList, citycode) {
             getCoo(district, coordinatesSet);
             feature.geometry.coordinates = coordinatesSet;
             coordinatesSet = [];
+
             return feature;
         }
-
-        district = {};
     }
+
 }
 
 // 生成区域坐标点集
