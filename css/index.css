@@ -2,6 +2,11 @@
   font-family: 'Noto Thin';
   src: url('font/noto-thin.min.ttf');
 }
+
+@font-face {
+  font-family: 'monaco';
+  src: url('font/monaco.ttf');
+}
 body {
   margin: 0px;
   text-align: center;
@@ -49,7 +54,7 @@ header nav li a:hover {
   text-decoration: underline;
 }
 main {
-  width: 1000px;
+  width: 1200px;
   margin: 0px auto;
   text-align: left;
 }
@@ -58,9 +63,16 @@ main h1 {
   color: #3c485c;
   font-weight: normal;
 }
-#configuration p.desc {
-  color: #888;
+
+#configuration {
+  width: 650px;
+  margin-right: 50px;
 }
+
+#configuration span.desc-warning {
+  color: #b854d4;
+}
+
 #configuration > section {
   border-bottom: 1px solid #e5e5e5;
   margin-top: 40px;
@@ -122,6 +134,14 @@ main h1 {
   right: 0;
   top: -98px;
 }
+
+#range label {
+  margin-right: 20px;
+}
+
+#range select {
+  width: 200px;
+}
 #other p.desc {
   font-size: 14px;
   padding-left: 10px;
@@ -150,9 +170,19 @@ main h1 {
 #example pre {
   line-height: 20px;
 }
+.javascript {
+  font-family: 'monaco';
+}
 #preview-viewport {
   width: 500px;
   height: 300px;
+}
+
+#configuration #preview {
+  position: fixed;
+  top: 200px;
+  right: 100px;
+  border: none;
 }
 footer {
   margin-top: 50px;
