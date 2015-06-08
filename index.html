@@ -115,7 +115,7 @@ myChart.setOption({
     (function() {
       var hm = document.createElement("script");
       hm.src = "//hm.baidu.com/hm.js?4bad1df23f079e0d12bdbef5e65b072f";
-      var s = document.getElementsByTagName("script")[0]; 
+      var s = document.getElementsByTagName("script")[0];
       s.parentNode.insertBefore(hm, s);
     })();
     </script>
@@ -140,12 +140,16 @@ myChart.setOption({
 
     var CENTRAL_CITIES = ['北京市市辖区','上海市市辖区','天津市市辖区','重庆市市辖区'];
     var AOMEN_AND_HK = ['香港特别行政区', '澳门特别行政区'];
+    var TAIWAN = ['台湾省'];
 
     // 是否是直辖市
     var isCentralCity = false;
 
     // 是否是香港澳门
     var isAomenOrHK = false;
+
+    // 是否是台湾
+    var isTaiwan = false;
 
     var centralCity = [
         {
@@ -171,6 +175,10 @@ myChart.setOption({
         {
             name: '澳门特别行政区',
             code: '1853'
+        },
+        {
+            name: '台湾省',
+            code: '710000'
         }
     ];
 
@@ -187,7 +195,7 @@ myChart.setOption({
     var content = INIT_PROVINCE_CONTENT;
 
     // 直辖市
-    for (var c = 0, cl = centralCity.length-2; c < cl; c++) {
+    for (var c = 0, cl = centralCity.length-3; c < cl; c++) {
         content +=  '<option value="city|' + centralCity[c].code + '">' + centralCity[c].name + '</option>';
     }
 
@@ -196,8 +204,8 @@ myChart.setOption({
         content += '<option value="province">'+provinceList[i]+'</option>';
     }
 
-    // 行政区
-    for (var cc = centralCity.length-2, ccl = centralCity.length; cc < ccl; cc++) {
+    // 行政区,台湾
+    for (var cc = centralCity.length-3, ccl = centralCity.length; cc < ccl; cc++) {
         content +=  '<option value="city|' + centralCity[cc].code + '">' + centralCity[cc].name + '</option>';
     }
 
@@ -259,7 +267,6 @@ myChart.setOption({
                 getType++;
             }
         }
-
         switch (getType) {
             case 3:
             fileStr = '中国';
@@ -310,6 +317,7 @@ myChart.setOption({
     function provinceSelectCallback() {
 
         $('#city').removeAttr("disabled");
+        $('#district').removeAttr("disabled");
         $('#outlineAndPartition').removeAttr("disabled");
 
         var arrTemp = $(this).val().split('|');
@@ -326,10 +334,23 @@ myChart.setOption({
         // 判断是否是香港澳门
         isAomenOrHK = isSpecialCity(keyword, AOMEN_AND_HK);
 
+        // 判断是否是台湾
+        isTaiwan = isSpecialCity(keyword, TAIWAN);
+
         // 直辖市和行政区时，禁用市级下拉列表
         if (isAomenOrHK || isCentralCity) {
             $('#city').html(INIT_CITY_CONTENT);
             $('#city').prop("disabled", true);
+        }
+
+        // 台湾时，禁用市级，县级下拉列表，只能选择外部轮廓
+        if (isTaiwan) {
+            $('#city').html(INIT_CITY_CONTENT);
+            $('#city').prop("disabled", true);
+            $('#district').html(INIT_DISTRICT_CONTENT);
+            $('#district').prop("disabled", true);
+            $('#outline').prop("checked", true);
+            $('#outlineAndPartition').prop("disabled", true);
         }
 
         var trimProvince = INIT_PROVINCE_CONTENT.replace(/<option>(.*?)<\/option>/g,"$1");
@@ -357,6 +378,10 @@ myChart.setOption({
     function citySelectCallback() {
 
         $('#outlineAndPartition').removeAttr("disabled");
+        // $('#city').removeAttr("disabled");
+        // $('#district').removeAttr("disabled");
+        // $('#outlineAndPartition').removeAttr("disabled");
+
         var arrTemp = $(this).val().split('|');
 
         //行政级别
@@ -385,7 +410,6 @@ myChart.setOption({
 
     // 监听区县级下拉列表变化
     $('#district').change(districtSelectCallback);
-
     function districtSelectCallback() {
 
         $('#outline').prop("checked", true);

@@ -58,6 +58,7 @@ function fetchGeoJson(range, isOnlyOutline, isCompressed, cb) {
 
     //行政区查询
     district.search(keyword, function(status, result){
+
         if (status === 'no_data') {
             cb();
             return;
