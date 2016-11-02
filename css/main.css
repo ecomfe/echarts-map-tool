@@ -130,7 +130,12 @@ h1 {
   font-size: 2rem; }
 
 h3 {
-  font-size: 1.5rem; }
+  font-size: 1.5rem;
+  margin-top: 30px;
+  margin-bottom: 20px; }
+
+p {
+  padding-left: 30px; }
 
 #preview-viewport {
   width: 100%;
