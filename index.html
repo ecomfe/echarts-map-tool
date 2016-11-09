@@ -190,6 +190,7 @@
     var CENTRAL_CITIES = ['北京市市辖区','上海市市辖区','天津市市辖区','重庆市市辖区'];
     var AOMEN_AND_HK = ['香港特别行政区', '澳门特别行政区'];
     var TAIWAN = ['台湾省'];
+    var NO_COUNTY = ['东莞市', '中山市', '三沙市', '儋州市', '嘉峪关市'];
 
     // 是否是直辖市
     var isCentralCity = false;
@@ -434,6 +435,17 @@
     function citySelectCallback() {
 
         $('#outlineAndPartition').removeAttr("disabled");
+
+        // 中国共有五个不设市辖区的地级市
+        var keyword = $(this).find("option:selected").text();
+        isNoCounty = isSpecialCity(keyword, NO_COUNTY);
+
+        // 没有市辖区的地级市，对他们只能选择外部轮廓
+        if (isNoCounty) {
+            $('#outline').prop("checked", true);
+            $('#outlineAndPartition').prop("disabled", true);
+        }
+
         // $('#city').removeAttr("disabled");
         // $('#district').removeAttr("disabled");
         // $('#outlineAndPartition').removeAttr("disabled");
