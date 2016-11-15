@@ -358,12 +358,18 @@
     $('#buildJs').click(downloadJs);
 
     function downloadJson() {
+        if (INIT_PROVINCE_CONTENT.indexOf($('#province').val()) > -1) {
+            return;
+        }
         updateAndFetch(function (geoJson) {
             downloadGeoJson(geoJson);
         });
     }
 
     function downloadJs() {
+        if (INIT_PROVINCE_CONTENT.indexOf($('#province').val()) > -1) {
+            return;
+        }
         updateAndFetch(function (geoJson) {
             downloadGeoJs(geoJson, $('#mapName').val());
         });
