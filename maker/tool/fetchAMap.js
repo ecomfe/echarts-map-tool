@@ -6,9 +6,10 @@ var provinceList = ['台湾省', '河北省', '山西省', '内蒙古自治区',
 
 var centralCityList = ['北京市', '天津市', '上海市', '重庆市', '香港特别行政区', '澳门特别行政区'];
 
-// provinceList = [];
+provinceList = [];
 // provinceList = ['新疆维吾尔自治区'];
-// centralCityList = [];
+// centralCityList = ['上海市'];
+
 
 var API_BASE = 'http://restapi.amap.com/v3/config/';
 var API_KEY = 'd619ce5126cfe80ad9c645fcc1b54e52';
@@ -44,14 +45,14 @@ provinceList.concat(centralCityList).forEach(function (provinceName) {
     var isCentralCity = centralCityList.slice(0, 4).indexOf(provinceName) >= 0;
     var url = makeDistritSearchUrl({
         // exclude '香港', '澳门'
-        keywords: centralCityList.slice(0, 4).indexOf(provinceName) >= 0 ? provinceName + '市辖区' : provinceName,
+        keywords: provinceName,
+        // keywords: centralCityList.slice(0, 4).indexOf(provinceName) >= 0 ? provinceName + '市辖区' : provinceName,
         level: isCentralCity ? 'city' : 'province'
     });
     console.log(url);
-    console.log(isCentralCity ? provinceName + '市辖区' : provinceName);
+    console.log(isCentralCity ? provinceName : provinceName);
 
     request(url, function (err, response, body) {
-        console.log(provinceName);
         // console.log(body);
         if (!fs.existsSync('./tmp')) {
             fs.mkdirSync('./tmp');

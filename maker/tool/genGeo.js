@@ -1,6 +1,8 @@
 var fs = require('fs');
 var simplify = require('./simplify');
+var compress = require('./compress');
 var pinyin = require('pinyin');
+var jsTplStr = fs.readFileSync('./jsTpl.js', 'utf-8');
 
 
 var provinceList = ['台湾', '河北', '山西', '内蒙古', '辽宁', '吉林','黑龙江',  '江苏', '浙江', '安徽', '福建', '江西', '山东','河南', '湖北', '湖南', '广东', '广西', '海南', '四川', '贵州', '云南', '西藏', '陕西', '甘肃', '青海', '宁夏', '新疆'];
@@ -38,8 +40,8 @@ function makeFeature(district, minArea, simplifyRatio) {
                 return [+pt[0], +pt[1]];
             });
         }).map(function (polygon) {
-            return polygon;
-            // return simplify(polygon, simplifyRatio, true);
+            // return polygon;
+            return simplify(polygon, simplifyRatio, true);
         }).filter(function (polygon) {
             // Remove small area isload
             return polygonArea(polygon) > minArea;
@@ -60,9 +62,12 @@ function makeFeature(district, minArea, simplifyRatio) {
     }
     var feature = {
         id: district.adcode,
+        type: 'Feature',
         geometry: {
             type: boundaries.length > 1 ? 'MultiPolygon' : 'Polygon',
-            coordinates: boundaries.length > 1 ? [boundaries] : boundaries
+            coordinates: boundaries.length > 1 ? boundaries.map(function (item) {
+                return [item];
+            }) : boundaries
         },
         properties: {
             cp: district.center.split(',').map(function (a) {return +a;}),
@@ -95,22 +100,32 @@ function makeChina() {
     };
     geoJson.features = geoJson.features.concat(centralCityFullList.map(function (cityName) {
         var json = readProvince(cityName);
-        return makeFeature(json.districts[0], 7, 0.015);
+        var feature = makeFeature(json.districts[0], 7, 0.015);
+        // TODO
+        feature.properties.name = feature.properties.name.replace('市', '')
+            .replace('特别行政区', '');
+        return feature;
     }));
-    // var jsonStr = JSON.stringify(compress(geoJson));
+
     var jsonStr = JSON.stringify(geoJson);
+    var jsonCompressedStr = JSON.stringify(compress(geoJson));
 
     fs.writeFileSync(
         '../raw/china.json',
         jsonStr,
         'utf-8'
     );
-    // fs.writeFileSync(
-    //     '../js/china.js',
-    //     jsTplStr.replace('{{name}}', 'china')
-    //         .replace('{{data}}', jsonStr),
-    //     'utf-8'
-    // );
+    fs.writeFileSync(
+        '../json/china.json',
+        jsonCompressedStr,
+        'utf-8'
+    );
+    fs.writeFileSync(
+        '../js/china.js',
+        jsTplStr.replace('{{name}}', 'china')
+            .replace('{{data}}', jsonCompressedStr),
+        'utf-8'
+    );
 }
 
 function makeChinaContour() {
@@ -122,18 +137,24 @@ function makeChinaContour() {
         })()]
     }
     var jsonStr = JSON.stringify(geoJson);
-    // var jsonStr = JSON.stringify(geoJson);
+    var jsonCompressedStr = JSON.stringify(compress(geoJson));
+
     fs.writeFileSync(
         '../raw/china-contour.json',
         jsonStr,
         'utf-8'
     );
-    // fs.writeFileSync(
-    //     '../js/china-contour.js',
-    //     jsTplStr.replace('{{name}}', 'china-contour')
-    //         .replace('{{data}}', jsonStr),
-    //     'utf-8'
-    // );
+    fs.writeFileSync(
+        '../json/china-contour.json',
+        jsonCompressedStr,
+        'utf-8'
+    );
+    fs.writeFileSync(
+        '../js/china-contour.js',
+        jsTplStr.replace('{{name}}', 'china-contour')
+            .replace('{{data}}', jsonCompressedStr),
+        'utf-8'
+    );
 }
 
 var pinyinTaken = {};
@@ -157,8 +178,8 @@ function makeProvince(provinceName) {
         })
     };
 
-    // var jsonStr = JSON.stringify(compress(geoJson));
     var jsonStr = JSON.stringify(geoJson);
+    var jsonCompressedStr = JSON.stringify(compress(geoJson));
 
     var pinyinName = pinyin(provinceFullShortMap[provinceName], {
         // heteronym: true,
@@ -178,13 +199,18 @@ function makeProvince(provinceName) {
         jsonStr,
         'utf-8'
     );
+    fs.writeFileSync(
+        '../json/province/' + pinyinName + '.json',
+        jsonCompressedStr,
+        'utf-8'
+    );
 
-    // fs.writeFileSync(
-    //     '../js/province/' + pinyinName + '.js',
-    //     jsTplStr.replace('{{name}}', provinceFullShortMap[provinceName])
-    //         .replace('{{data}}', jsonStr),
-    //     'utf-8'
-    // );
+    fs.writeFileSync(
+        '../js/province/' + pinyinName + '.js',
+        jsTplStr.replace('{{name}}', provinceFullShortMap[provinceName])
+            .replace('{{data}}', jsonCompressedStr),
+        'utf-8'
+    );
 }
 
 makeChinaContour();
@@ -192,18 +218,20 @@ makeChinaContour();
 makeChina();
 
 
-provinceList = provinceList.concat(centralCityList);
-provinceFullList = provinceFullList.concat(centralCityFullList);
 
-provinceFullShortMap = provinceFullList.reduce(function (obj, val, idx) {
-    obj[val] = provinceList[idx];
-    return obj;
-}, {});
 
-provinceFullList.forEach(function (provinceName) {
-    if (provinceName === '台湾省') {
-        return;
-    }
-    console.log('Generating ' + provinceName);
-    makeProvince(provinceName);
-});
+// provinceList = provinceList.concat(centralCityList);
+// provinceFullList = provinceFullList.concat(centralCityFullList);
+
+// provinceFullShortMap = provinceFullList.reduce(function (obj, val, idx) {
+//     obj[val] = provinceList[idx];
+//     return obj;
+// }, {});
+
+// provinceFullList.forEach(function (provinceName) {
+//     if (provinceName === '台湾省') {
+//         return;
+//     }
+//     console.log('Generating ' + provinceName);
+//     makeProvince(provinceName);
+// });
