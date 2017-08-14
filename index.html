@@ -422,6 +422,11 @@
             $('#city').prop("disabled", true);
         }
 
+        // 直辖市的县级内容为初始状态
+        if (isCentralCity) {
+            $('#district').html(INIT_DISTRICT_CONTENT);
+        }
+
         // 台湾时，禁用市级，县级下拉列表，只能选择外部轮廓
         if (isTaiwan) {
             $('#city').html(INIT_CITY_CONTENT);
@@ -525,7 +530,6 @@
         district.setLevel(level);
         //行政区查询
         district.search(keyword, function(status, result){
-            console.log(result);
             getData(result);
         });
 
@@ -556,21 +560,17 @@
             level = list[0].level;
 
             // 清空下一级别的下拉列表
-            if(level === 'province'){
-
+            if (level === 'province') {
                 nextLevel = 'city';
                 $('#city').html(INIT_CITY_CONTENT);
                 $('#district').html(INIT_DISTRICT_CONTENT);
-
-            }else if(level === 'city'){
-
+            }
+            else if (level === 'city') {
                 nextLevel = 'district';
                 $('#district').html(INIT_DISTRICT_CONTENT);
-
-            } else if(level === 'district') {
-
+            }
+            else if (level === 'district') {
                 nextLevel = 'biz_area';
-
             }
 
             if(subList){
