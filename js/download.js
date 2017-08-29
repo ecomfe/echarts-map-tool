@@ -67,7 +67,11 @@ function fetchGeoJson(range, isOnlyOutline, isCompressed, cb) {
             createOutlineGeojson(result.districtList, isCompressed, cb);
         }
         else {
-            createDetailedGeojson(result.districtList, isCompressed, cb);
+            if (result.districtList[0].districtList){
+                createDetailedGeojson(result.districtList, isCompressed, cb);
+            }else{
+                alert(result.districtList[0].name + "没有下属区域。");
+            }
         }
     });
 }
