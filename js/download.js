@@ -110,7 +110,7 @@ function createDetailedGeojson(list, isCompressed, cb) {
 
     var data = list[0];
 
-    var dList = data.districtList;
+    var dList = data.districtList || [];
     var cityCode = data.citycode;
 
     var reqCount = 0;
