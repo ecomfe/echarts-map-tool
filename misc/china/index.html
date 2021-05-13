@@ -312,17 +312,37 @@
                 });
 
                 // 移除黑龙江在内蒙古内的飞地
-                const neimenFeature = json.features.find(feat => {
-                    return feat.properties.name === '内蒙古';
-                });
-                var poly1 = neimenFeature.geometry.coordinates[0];
-                var poly2 = neimenFeature.geometry.coordinates[1];
-                var union = PolyBool.union({
-                    regions: poly1
-                }, {
-                    regions: poly2
-                });
-                neimenFeature.geometry.coordinates = [[union.regions[3]]];
+                {
+                    const neimenFeature = json.features.find(feat => {
+                        return feat.properties.name === '内蒙古';
+                    });
+                    var poly1 = neimenFeature.geometry.coordinates[0];
+                    var poly2 = neimenFeature.geometry.coordinates[1];
+                    var union = PolyBool.union({
+                        regions: poly1
+                    }, {
+                        regions: poly2
+                    });
+                    // TODO Hard coded.
+                    neimenFeature.geometry.coordinates = [[union.regions[3]]];
+                }
+
+                // 移除湖南的飞地
+                {
+                    const hunanFeature = json.features.find(feat => {
+                        return feat.properties.name === '湖南';
+                    });
+                    // var poly1 = hunanFeature.geometry.coordinates[0];
+                    var poly1 = hunanFeature.geometry.coordinates[1];
+                    var poly2 = hunanFeature.geometry.coordinates[2];
+                    var union = PolyBool.union({
+                        regions: poly1
+                    }, {
+                        regions: poly2
+                    });
+                    // TODO Hard coded.
+                    hunanFeature.geometry.coordinates = [[union.regions[5]]];
+                }
 
                 const chart = echarts.init(document.getElementById('chart-main'));
 
@@ -355,7 +375,7 @@
                         }, {
                             name: '广西',
                             itemStyle: {
-                                areaColor: '#fff'
+                                areaColor: '#ddd'
                             }
                         }, {
                             name: '广东',
