@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.1.1/dist/echarts.min.js"></script>
+</head>
+<body>
+    <style>
+        #chart-main {
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: 0;
+            bottom: 0;
+        }
+        #download {
+            position: absolute;
+            left: 10px;
+            top: 10px;
+        }
+    </style>
+
+    <div id="chart-main"></div>
+
+    <script>
+        fetch('./china-new.json').then(response => response.json()).then((json) => {
+            const chart = echarts.init(document.getElementById('chart-main'));
+            // 需要注册一个新的地图名称，不要使用 china
+            echarts.registerMap('china-new', json);
+
+            chart.setOption({
+                visualMap: {
+                    min: 0,
+                    max: 1000,
+                    left: 26,
+                    bottom: 40,
+                    showLabel: !0,
+                    text: ["高", "低"],
+                    pieces: [{
+                        gt: 100,
+                        label: "> 100 人",
+                        color: "#7f1100"
+                    }, {
+                        gte: 10,
+                        lte: 100,
+                        label: "10 - 100 人",
+                        color: "#ff5428"
+                    }, {
+                        gte: 1,
+                        lt: 10,
+                        label: "1 - 9 人",
+                        color: "#ff8c71"
+                    }, {
+                        gt: 0,
+                        lt: 1,
+                        label: "疑似",
+                        color: "#ffd768"
+                    }, {
+                        value: 0,
+                        color: "#ffffff"
+                    }],
+                    show: !0
+                },
+                series: {
+                    type: 'map',
+                    roam: true,
+                    map: 'china-new',
+                    label: {
+                        show: true,
+                        color: '#eee'
+                    },
+                    data: [{
+                        // 南海诸岛的样式根据需要单独配置，比如去掉描边，不显示标签
+                        name: '南海诸岛',
+                        label: {
+                            show: true,
+                            position: 'bottom',
+                            color: '#000',
+                            fontSize: 16
+                        },
+                        itemStyle: {
+                            areaColor: '#555',
+                            borderWidth: 0
+                        }
+                    },
+
+
+                    {
+                        name: '北京',
+                        value: 54
+                    },
+                    {
+                        name: '天津',
+                        value: 13
+                    },
+                    {
+                        name: '上海',
+                        value: 40
+                    },
+                    {
+                        name: '重庆',
+                        value: 75
+                    },
+                    {
+                        name: '河北',
+                        value: 13
+                    },
+                    {
+                        name: '河南',
+                        value: 83
+                    },
+                    {
+                        name: '云南',
+                        value: 11
+                    },
+                    {
+                        name: '辽宁',
+                        value: 19
+                    },
+                    {
+                        name: '黑龙江',
+                        value: 15
+                    },
+                    {
+                        name: '湖南',
+                        value: 69
+                    },
+                    {
+                        name: '安徽',
+                        value: 60
+                    },
+                    {
+                        name: '山东',
+                        value: 39
+                    },
+                    {
+                        name: '新疆',
+                        value: 4
+                    },
+                    {
+                        name: '江苏',
+                        value: 31
+                    },
+                    {
+                        name: '浙江',
+                        value: 104
+                    },
+                    {
+                        name: '江西',
+                        value: 36
+                    },
+                    {
+                        name: '湖北',
+                        value: 1052
+                    },
+                    {
+                        name: '广西',
+                        value: 33
+                    },
+                    {
+                        name: '甘肃',
+                        value: 7
+                    },
+                    {
+                        name: '山西',
+                        value: 9
+                    },
+                    {
+                        name: '内蒙古',
+                        value: 7
+                    },
+                    {
+                        name: '陕西',
+                        value: 22
+                    },
+                    {
+                        name: '吉林',
+                        value: 4
+                    },
+                    {
+                        name: '福建',
+                        value: 18
+                    },
+                    {
+                        name: '贵州',
+                        value: 5
+                    },
+                    {
+                        name: '广东',
+                        value: 98
+                    },
+                    {
+                        name: '青海',
+                        value: 1
+                    },
+                    {
+                        name: '西藏',
+                        value: 0
+                    },
+                    {
+                        name: '四川',
+                        value: 44
+                    },
+                    {
+                        name: '宁夏',
+                        value: 4
+                    },
+                    {
+                        name: '海南',
+                        value: 22
+                    },
+                    {
+                        name: '台湾',
+                        value: 3
+                    },
+                    {
+                        name: '香港',
+                        value: 5
+                    },
+                    {
+                        name: '澳门',
+                        value: 5
+                    }
+]
+                }
+            });
+        });
+    </script>
+</body>
+</html>
